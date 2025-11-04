@@ -5,6 +5,15 @@ const carritoContainer = document.querySelector('#carrito');
 
 let carrito = [];
 
+// Cargar carrito desde localStorage si existe
+document.addEventListener('DOMContentLoaded', () => {
+  const carritoGuardado = localStorage.getItem('carrito');
+  if (carritoGuardado) {
+    carrito = JSON.parse(carritoGuardado);
+  }
+  createCart();
+});
+
 // Crear tarjeta de guitarra
 const createDiv = (guitar) => {
   const div = document.createElement('div');
@@ -29,6 +38,7 @@ const createDiv = (guitar) => {
 const createCart = () => {
   if (carrito.length === 0) {
     carritoContainer.innerHTML = '<p class="text-center">El carrito está vacío</p>';
+    localStorage.removeItem('carrito'); // limpiar almacenamiento si no hay nada
     return;
   }
 
@@ -72,6 +82,9 @@ const createCart = () => {
   `;
 
   carritoContainer.innerHTML = html;
+
+  // guardar carrito actualizado en localStorage
+  localStorage.setItem('carrito', JSON.stringify(carrito));
 };
 
 // Mostrar guitarras
@@ -79,6 +92,7 @@ db.forEach(guitar => divContainer.appendChild(createDiv(guitar)));
 
 // Manejar clics
 document.addEventListener('click', e => {
+  // Agregar al carrito
   if (e.target.classList.contains('btn-dark') && e.target.textContent.includes('Agregar')) {
     const id = Number(e.target.dataset.id);
     const guitarra = db.find(g => g.id === id);
@@ -92,7 +106,7 @@ document.addEventListener('click', e => {
     createCart();
   }
 
-  // Botones del carrito
+  // Botón +
   if (e.target.classList.contains('btn-sumar')) {
     const id = Number(e.target.closest('tr').dataset.id);
     const item = carrito.find(g => g.id === id);
@@ -100,19 +114,26 @@ document.addEventListener('click', e => {
     createCart();
   }
 
+  // Botón -
   if (e.target.classList.contains('btn-restar')) {
     const id = Number(e.target.closest('tr').dataset.id);
     const item = carrito.find(g => g.id === id);
-    if (item.cantidad > 1) item.cantidad--;
+    if (item.cantidad > 1) {
+      item.cantidad--;
+    } else {
+      carrito = carrito.filter(g => g.id !== id);
+    }
     createCart();
   }
 
+  // Botón X (borrar)
   if (e.target.classList.contains('btn-borrar')) {
     const id = Number(e.target.closest('tr').dataset.id);
     carrito = carrito.filter(g => g.id !== id);
     createCart();
   }
 
+  // Vaciar carrito
   if (e.target.classList.contains('btn-vaciar')) {
     carrito = [];
     createCart();
